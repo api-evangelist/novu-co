@@ -1,0 +1,1409 @@
+openapi: 3.0.3
+info:
+  title: Novu API
+  description: >-
+    The Novu REST API drives open-source notification infrastructure that sends
+    multi-channel messages - email, SMS, push, chat, and an in-app Inbox - from a
+    single workflow trigger. A trigger event fans a notification out across the
+    channels defined in a workflow. This document models the core resources -
+    Events (Trigger), Subscribers, Topics, the in-app Inbox feed, Messages,
+    Notifications (activity), Workflows, Integrations, Layouts, subscriber
+    Preferences, Environments, and Translations. Novu is open source (MIT) and
+    self-hostable, and also runs as Novu Cloud with US and EU regions. All
+    requests authenticate with a secret API key sent as
+    `Authorization: ApiKey <NOVU_SECRET_KEY>`. Endpoints are grounded in Novu's
+    published API reference; request/response bodies are modeled at a
+    representative level rather than field-complete.
+  version: '1.0'
+  contact:
+    name: Novu
+    url: https://novu.co
+  license:
+    name: MIT
+    url: https://github.com/novuhq/novu/blob/next/LICENSE
+servers:
+  - url: https://api.novu.co/v1
+    description: Novu Cloud - US (default)
+  - url: https://eu.api.novu.co/v1
+    description: Novu Cloud - EU
+security:
+  - apiKeyAuth: []
+tags:
+  - name: Events
+    description: Trigger, bulk trigger, broadcast, and cancel workflow executions.
+  - name: Subscribers
+    description: Manage notification recipients and their credentials.
+  - name: Topics
+    description: Group subscribers into addressable audiences.
+  - name: Inbox
+    description: The in-app notification feed for a subscriber.
+  - name: Messages
+    description: Individual channel messages produced by workflow executions.
+  - name: Notifications
+    description: Activity feed of triggered workflow executions (events).
+  - name: Workflows
+    description: Multi-channel notification workflow definitions.
+  - name: Integrations
+    description: Channel provider configurations.
+  - name: Layouts
+    description: Reusable email layout wrappers.
+  - name: Preferences
+    description: Per-subscriber notification preferences.
+  - name: Environments
+    description: Environments and resource promotion.
+  - name: Translations
+    description: Localization of notification content.
+paths:
+  /events/trigger:
+    post:
+      operationId: triggerEvent
+      tags: [Events]
+      summary: Trigger event
+      description: >-
+        Triggers a notification workflow for one or more subscribers. A single
+        event fans out across the channels defined in the named workflow.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerEventRequest'
+      responses:
+        '201':
+          description: The trigger was accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriggerEventResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /events/trigger/bulk:
+    post:
+      operationId: bulkTriggerEvents
+      tags: [Events]
+      summary: Bulk trigger event
+      description: Triggers up to 100 events in a single request. Counts as 100 rate-limit tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TriggerEventRequest'
+      responses:
+        '201':
+          description: The bulk trigger was accepted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /events/broadcast:
+    post:
+      operationId: broadcastEvent
+      tags: [Events]
+      summary: Broadcast event to all
+      description: Triggers a workflow for all subscribers in the current environment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                payload:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '201':
+          description: The broadcast was accepted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /events/trigger/{transactionId}:
+    delete:
+      operationId: cancelTriggeredEvent
+      tags: [Events]
+      summary: Cancel triggered event
+      description: Cancels a triggered event (for example, one still in a delay or digest step) by its transactionId.
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cancellation result.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /subscribers:
+    post:
+      operationId: createSubscriber
+      tags: [Subscribers]
+      summary: Create a subscriber
+      description: Creates a subscriber (notification recipient).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberInput'
+      responses:
+        '201':
+          description: The created subscriber.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscriber'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /subscribers/bulk:
+    post:
+      operationId: bulkCreateSubscribers
+      tags: [Subscribers]
+      summary: Bulk create subscribers
+      description: Creates up to 500 subscribers in a single request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscribers:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/SubscriberInput'
+      responses:
+        '201':
+          description: Bulk create result.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /subscribers/{subscriberId}:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getSubscriber
+      tags: [Subscribers]
+      summary: Retrieve a subscriber
+      responses:
+        '200':
+          description: The requested subscriber.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscriber'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateSubscriber
+      tags: [Subscribers]
+      summary: Update a subscriber
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberInput'
+      responses:
+        '200':
+          description: The updated subscriber.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscriber'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteSubscriber
+      tags: [Subscribers]
+      summary: Delete a subscriber
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/credentials/{providerId}:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+      - name: providerId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: updateSubscriberCredentials
+      tags: [Subscribers]
+      summary: Update provider credentials
+      description: Updates channel credentials (for example a device token or chat webhook URL) for a subscriber and provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentials:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Updated subscriber.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/preferences:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getSubscriberPreferences
+      tags: [Preferences]
+      summary: Retrieve subscriber preferences
+      responses:
+        '200':
+          description: The subscriber's preferences per workflow and channel.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferencesResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateSubscriberPreferences
+      tags: [Preferences]
+      summary: Update subscriber preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferenceUpdate'
+      responses:
+        '200':
+          description: Updated preferences.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/notifications/feed:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getInAppNotificationFeed
+      tags: [Inbox]
+      summary: Retrieve the in-app notification feed
+      description: >-
+        Returns the paginated in-app (Inbox) notification feed for a subscriber.
+        This is the same feed the embeddable Inbox component renders and receives
+        live updates for over the WebSocket described in the AsyncAPI document.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: read
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: A page of in-app notifications.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InAppFeedResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/notifications/unseen:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getUnseenCount
+      tags: [Inbox]
+      summary: Retrieve unseen count
+      description: Returns the number of unseen in-app notifications for the subscriber - the value pushed live as unseen_count_changed over the WebSocket.
+      responses:
+        '200':
+          description: The unseen count.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/messages/markAs:
+    parameters:
+      - $ref: '#/components/parameters/SubscriberId'
+    post:
+      operationId: markMessagesAs
+      tags: [Inbox]
+      summary: Mark in-app messages as seen/read
+      description: Marks one or more in-app messages as seen or read for the subscriber.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [messageId, mark]
+              properties:
+                messageId:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                mark:
+                  type: object
+                  properties:
+                    seen:
+                      type: boolean
+                    read:
+                      type: boolean
+      responses:
+        '200':
+          description: Updated messages.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /topics:
+    post:
+      operationId: createTopic
+      tags: [Topics]
+      summary: Create a topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicInput'
+      responses:
+        '201':
+          description: The created topic.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      operationId: listTopics
+      tags: [Topics]
+      summary: List all topics
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of topics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Topic'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /topics/{topicKey}:
+    parameters:
+      - $ref: '#/components/parameters/TopicKey'
+    get:
+      operationId: getTopic
+      tags: [Topics]
+      summary: Retrieve a topic
+      responses:
+        '200':
+          description: The requested topic.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Topic'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteTopic
+      tags: [Topics]
+      summary: Delete a topic
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /topics/{topicKey}/subscribers:
+    parameters:
+      - $ref: '#/components/parameters/TopicKey'
+    post:
+      operationId: addSubscribersToTopic
+      tags: [Topics]
+      summary: Create topic subscriptions
+      description: Adds subscribers to a topic.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscribers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Subscription result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: removeSubscribersFromTopic
+      tags: [Topics]
+      summary: Delete topic subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscribers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Removal result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /messages:
+    get:
+      operationId: listMessages
+      tags: [Messages]
+      summary: List all messages
+      description: Lists individual channel messages produced by workflow executions.
+      parameters:
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [in_app, email, sms, chat, push]
+        - name: subscriberId
+          in: query
+          schema:
+            type: string
+        - name: transactionId
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of messages.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /messages/{messageId}:
+    delete:
+      operationId: deleteMessage
+      tags: [Messages]
+      summary: Delete a message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [Notifications]
+      summary: List all events
+      description: Lists the activity feed of triggered workflow executions (events).
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: channels
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: transactionId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A page of notification/event records.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /notifications/{notificationId}:
+    get:
+      operationId: getNotification
+      tags: [Notifications]
+      summary: Retrieve an event
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested notification/event with per-step execution detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workflows:
+    post:
+      operationId: createWorkflow
+      tags: [Workflows]
+      summary: Create a workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInput'
+      responses:
+        '201':
+          description: The created workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      operationId: listWorkflows
+      tags: [Workflows]
+      summary: List all workflows
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A page of workflows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workflow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /workflows/{workflowId}:
+    parameters:
+      - name: workflowId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getWorkflow
+      tags: [Workflows]
+      summary: Retrieve a workflow
+      responses:
+        '200':
+          description: The requested workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateWorkflow
+      tags: [Workflows]
+      summary: Update a workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowInput'
+      responses:
+        '200':
+          description: The updated workflow.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: patchWorkflow
+      tags: [Workflows]
+      summary: Partially update a workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: The updated workflow.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteWorkflow
+      tags: [Workflows]
+      summary: Delete a workflow
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workflows/{workflowId}/sync:
+    post:
+      operationId: syncWorkflow
+      tags: [Workflows]
+      summary: Sync a workflow
+      description: Syncs a workflow to a target environment.
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetEnvironmentId:
+                  type: string
+      responses:
+        '200':
+          description: Sync result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /integrations:
+    post:
+      operationId: createIntegration
+      tags: [Integrations]
+      summary: Create an integration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrationInput'
+      responses:
+        '201':
+          description: The created integration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      operationId: listIntegrations
+      tags: [Integrations]
+      summary: List all integrations
+      responses:
+        '200':
+          description: A list of integrations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Integration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /integrations/active:
+    get:
+      operationId: listActiveIntegrations
+      tags: [Integrations]
+      summary: List active integrations
+      responses:
+        '200':
+          description: A list of active integrations.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Integration'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /integrations/{integrationId}:
+    parameters:
+      - name: integrationId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      operationId: updateIntegration
+      tags: [Integrations]
+      summary: Update an integration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrationInput'
+      responses:
+        '200':
+          description: The updated integration.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteIntegration
+      tags: [Integrations]
+      summary: Delete an integration
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /integrations/{integrationId}/set-primary:
+    post:
+      operationId: setIntegrationPrimary
+      tags: [Integrations]
+      summary: Set integration as primary
+      parameters:
+        - name: integrationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The updated integration.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /layouts:
+    post:
+      operationId: createLayout
+      tags: [Layouts]
+      summary: Create a layout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LayoutInput'
+      responses:
+        '201':
+          description: The created layout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Layout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      operationId: listLayouts
+      tags: [Layouts]
+      summary: List all layouts
+      responses:
+        '200':
+          description: A page of layouts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Layout'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /layouts/{layoutId}:
+    parameters:
+      - name: layoutId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getLayout
+      tags: [Layouts]
+      summary: Retrieve a layout
+      responses:
+        '200':
+          description: The requested layout.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Layout'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateLayout
+      tags: [Layouts]
+      summary: Update a layout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LayoutInput'
+      responses:
+        '200':
+          description: The updated layout.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteLayout
+      tags: [Layouts]
+      summary: Delete a layout
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /environments:
+    post:
+      operationId: createEnvironment
+      tags: [Environments]
+      summary: Create an environment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: The created environment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Environment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    get:
+      operationId: listEnvironments
+      tags: [Environments]
+      summary: List all environments
+      responses:
+        '200':
+          description: A list of environments.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Environment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /environments/publish:
+    post:
+      operationId: publishEnvironment
+      tags: [Environments]
+      summary: Publish to target environment
+      description: Publishes resources from the current environment to a target environment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetEnvironmentId:
+                  type: string
+      responses:
+        '200':
+          description: Publish result.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /translations:
+    post:
+      operationId: createTranslation
+      tags: [Translations]
+      summary: Create a translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslationInput'
+      responses:
+        '201':
+          description: The created translation.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /translations/{resourceType}/{resourceId}/{locale}:
+    parameters:
+      - name: resourceType
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: resourceId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: locale
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getTranslation
+      tags: [Translations]
+      summary: Retrieve a translation
+      responses:
+        '200':
+          description: The requested translation.
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteTranslation
+      tags: [Translations]
+      summary: Delete a translation
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: >-
+        Novu secret API key from the Dashboard API Keys page, sent as
+        `Authorization: ApiKey <NOVU_SECRET_KEY>`.
+  parameters:
+    SubscriberId:
+      name: subscriberId
+      in: path
+      required: true
+      description: Your application's unique identifier for the subscriber.
+      schema:
+        type: string
+    TopicKey:
+      name: topicKey
+      in: path
+      required: true
+      description: The user-defined unique key of the topic.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+    TriggerEventRequest:
+      type: object
+      required: [name, to]
+      properties:
+        name:
+          type: string
+          description: The workflow trigger identifier.
+        to:
+          description: Recipient(s) - a subscriberId, a subscriber object, an array, or a topic reference.
+          oneOf:
+            - type: string
+            - type: object
+              additionalProperties: true
+            - type: array
+              items:
+                oneOf:
+                  - type: string
+                  - type: object
+                    additionalProperties: true
+        payload:
+          type: object
+          additionalProperties: true
+          description: Variables interpolated into the workflow's channel steps.
+        overrides:
+          type: object
+          additionalProperties: true
+        transactionId:
+          type: string
+    TriggerEventResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            acknowledged:
+              type: boolean
+            status:
+              type: string
+            transactionId:
+              type: string
+    SubscriberInput:
+      type: object
+      required: [subscriberId]
+      properties:
+        subscriberId:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatar:
+          type: string
+        locale:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+    Subscriber:
+      allOf:
+        - $ref: '#/components/schemas/SubscriberInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            _environmentId:
+              type: string
+            _organizationId:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+    PreferencesResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              template:
+                type: object
+                additionalProperties: true
+              preference:
+                type: object
+                additionalProperties: true
+    PreferenceUpdate:
+      type: object
+      properties:
+        channel:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [in_app, email, sms, chat, push]
+            enabled:
+              type: boolean
+        workflowId:
+          type: string
+        enabled:
+          type: boolean
+    InAppFeedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InAppNotification'
+        totalCount:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        hasMore:
+          type: boolean
+    InAppNotification:
+      type: object
+      properties:
+        _id:
+          type: string
+        _feedId:
+          type: string
+        content:
+          type: string
+        read:
+          type: boolean
+        seen:
+          type: boolean
+        archived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+        cta:
+          type: object
+          additionalProperties: true
+    TopicInput:
+      type: object
+      required: [key, name]
+      properties:
+        key:
+          type: string
+        name:
+          type: string
+    Topic:
+      allOf:
+        - $ref: '#/components/schemas/TopicInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            _environmentId:
+              type: string
+            subscribers:
+              type: array
+              items:
+                type: string
+    Message:
+      type: object
+      properties:
+        _id:
+          type: string
+        channel:
+          type: string
+          enum: [in_app, email, sms, chat, push]
+        subscriberId:
+          type: string
+        transactionId:
+          type: string
+        status:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Notification:
+      type: object
+      properties:
+        _id:
+          type: string
+        transactionId:
+          type: string
+        _subscriberId:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+        jobs:
+          type: array
+          description: Per-step execution detail for the triggered workflow.
+          items:
+            type: object
+            additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+    WorkflowInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        workflowId:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [in_app, email, sms, chat, push, digest, delay, trigger, custom]
+            additionalProperties: true
+        tags:
+          type: array
+          items:
+            type: string
+    Workflow:
+      allOf:
+        - $ref: '#/components/schemas/WorkflowInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            _environmentId:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+    IntegrationInput:
+      type: object
+      required: [providerId, channel]
+      properties:
+        providerId:
+          type: string
+          description: Provider slug (for example sendgrid, twilio, fcm, apns, slack).
+        channel:
+          type: string
+          enum: [in_app, email, sms, chat, push]
+        credentials:
+          type: object
+          additionalProperties: true
+        active:
+          type: boolean
+        name:
+          type: string
+    Integration:
+      allOf:
+        - $ref: '#/components/schemas/IntegrationInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            _environmentId:
+              type: string
+            primary:
+              type: boolean
+    LayoutInput:
+      type: object
+      required: [name, content]
+      properties:
+        name:
+          type: string
+        identifier:
+          type: string
+        content:
+          type: string
+        description:
+          type: string
+        isDefault:
+          type: boolean
+    Layout:
+      allOf:
+        - $ref: '#/components/schemas/LayoutInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+            _environmentId:
+              type: string
+    Environment:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        identifier:
+          type: string
+        _organizationId:
+          type: string
+    TranslationInput:
+      type: object
+      required: [resourceType, resourceId, locale]
+      properties:
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        locale:
+          type: string
+        content:
+          type: object
+          additionalProperties: true

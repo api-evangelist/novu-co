@@ -1,0 +1,325 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Novu API",
+    "version": "1.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "apikey": {
+        "key": "Authorization",
+        "value": "ApiKey {{secretKey}}",
+        "in": "header"
+      }
+    }
+  },
+  "items": [
+    {
+      "info": { "name": "Events", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Trigger event", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/events/trigger",
+            "body": { "type": "json", "data": "{ \"name\": \"welcome-workflow\", \"to\": \"user_123\", \"payload\": {} }" }
+          },
+          "docs": "Triggers a notification workflow for one or more subscribers."
+        },
+        {
+          "info": { "name": "Bulk trigger events", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/events/trigger/bulk",
+            "body": { "type": "json", "data": "{ \"events\": [] }" }
+          },
+          "docs": "Triggers up to 100 events in one request (costs 100 rate-limit tokens)."
+        },
+        {
+          "info": { "name": "Broadcast event to all", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/events/broadcast",
+            "body": { "type": "json", "data": "{ \"name\": \"announcement\", \"payload\": {} }" }
+          },
+          "docs": "Triggers a workflow for all subscribers in the environment."
+        },
+        {
+          "info": { "name": "Cancel triggered event", "type": "http" },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.novu.co/v1/events/trigger/:transactionId",
+            "params": [ { "name": "transactionId", "value": "", "type": "path", "description": "The transactionId of the triggered event." } ]
+          },
+          "docs": "Cancels a triggered event by transactionId."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Subscribers", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a subscriber", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/subscribers",
+            "body": { "type": "json", "data": "{ \"subscriberId\": \"user_123\", \"email\": \"user@example.com\" }" }
+          },
+          "docs": "Creates a subscriber (notification recipient)."
+        },
+        {
+          "info": { "name": "Retrieve a subscriber", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ]
+          },
+          "docs": "Retrieves a subscriber by ID."
+        },
+        {
+          "info": { "name": "Update a subscriber", "type": "http" },
+          "http": {
+            "method": "PUT",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ],
+            "body": { "type": "json", "data": "{}" }
+          },
+          "docs": "Updates a subscriber."
+        },
+        {
+          "info": { "name": "Delete a subscriber", "type": "http" },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ]
+          },
+          "docs": "Deletes a subscriber."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Topics", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a topic", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/topics",
+            "body": { "type": "json", "data": "{ \"key\": \"product-updates\", \"name\": \"Product Updates\" }" }
+          },
+          "docs": "Creates a topic (addressable audience)."
+        },
+        {
+          "info": { "name": "List all topics", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/topics" },
+          "docs": "Lists topics."
+        },
+        {
+          "info": { "name": "Add subscribers to a topic", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/topics/:topicKey/subscribers",
+            "params": [ { "name": "topicKey", "value": "", "type": "path", "description": "The topic key." } ],
+            "body": { "type": "json", "data": "{ \"subscribers\": [\"user_123\"] }" }
+          },
+          "docs": "Adds subscribers to a topic."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Inbox", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Retrieve the in-app notification feed", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId/notifications/feed",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ]
+          },
+          "docs": "Returns the subscriber's in-app (Inbox) feed. Live updates arrive over the WebSocket at wss://ws.novu.co."
+        },
+        {
+          "info": { "name": "Retrieve unseen count", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId/notifications/unseen",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ]
+          },
+          "docs": "Returns the unseen count - pushed live as unseen_count_changed over the WebSocket."
+        },
+        {
+          "info": { "name": "Mark in-app messages as seen/read", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId/messages/markAs",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ],
+            "body": { "type": "json", "data": "{ \"messageId\": \"\", \"mark\": { \"seen\": true, \"read\": true } }" }
+          },
+          "docs": "Marks in-app messages as seen or read."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Messages", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List all messages", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/messages" },
+          "docs": "Lists channel messages produced by workflow executions."
+        },
+        {
+          "info": { "name": "Delete a message", "type": "http" },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.novu.co/v1/messages/:messageId",
+            "params": [ { "name": "messageId", "value": "", "type": "path", "description": "The message ID." } ]
+          },
+          "docs": "Deletes a message."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Notifications", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List all events", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/notifications" },
+          "docs": "Lists the activity feed of triggered workflow executions."
+        },
+        {
+          "info": { "name": "Retrieve an event", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/notifications/:notificationId",
+            "params": [ { "name": "notificationId", "value": "", "type": "path", "description": "The notification/event ID." } ]
+          },
+          "docs": "Retrieves a single event with per-step execution detail."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Workflows", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a workflow", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/workflows",
+            "body": { "type": "json", "data": "{ \"name\": \"Welcome\", \"workflowId\": \"welcome-workflow\", \"steps\": [] }" }
+          },
+          "docs": "Creates a multi-channel notification workflow."
+        },
+        {
+          "info": { "name": "List all workflows", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/workflows" },
+          "docs": "Lists workflows."
+        },
+        {
+          "info": { "name": "Retrieve a workflow", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/workflows/:workflowId",
+            "params": [ { "name": "workflowId", "value": "", "type": "path", "description": "The workflow ID." } ]
+          },
+          "docs": "Retrieves a workflow."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Integrations", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List all integrations", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/integrations" },
+          "docs": "Lists channel provider integrations."
+        },
+        {
+          "info": { "name": "Create an integration", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/integrations",
+            "body": { "type": "json", "data": "{ \"providerId\": \"sendgrid\", \"channel\": \"email\", \"active\": true }" }
+          },
+          "docs": "Creates a provider integration."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Layouts", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List all layouts", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/layouts" },
+          "docs": "Lists reusable email layouts."
+        },
+        {
+          "info": { "name": "Create a layout", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/layouts",
+            "body": { "type": "json", "data": "{ \"name\": \"Default\", \"content\": \"<html>{{content}}</html>\" }" }
+          },
+          "docs": "Creates an email layout."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Preferences", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Retrieve subscriber preferences", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId/preferences",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ]
+          },
+          "docs": "Reads per-subscriber notification preferences."
+        },
+        {
+          "info": { "name": "Update subscriber preferences", "type": "http" },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.novu.co/v1/subscribers/:subscriberId/preferences",
+            "params": [ { "name": "subscriberId", "value": "", "type": "path", "description": "The subscriber ID." } ],
+            "body": { "type": "json", "data": "{ \"channel\": { \"type\": \"email\", \"enabled\": false } }" }
+          },
+          "docs": "Updates per-subscriber notification preferences."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Environments", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List all environments", "type": "http" },
+          "http": { "method": "GET", "url": "https://api.novu.co/v1/environments" },
+          "docs": "Lists environments."
+        },
+        {
+          "info": { "name": "Publish to target environment", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/environments/publish",
+            "body": { "type": "json", "data": "{ \"targetEnvironmentId\": \"\" }" }
+          },
+          "docs": "Publishes resources to a target environment."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Translations", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a translation", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.novu.co/v1/translations",
+            "body": { "type": "json", "data": "{ \"resourceType\": \"workflow\", \"resourceId\": \"welcome-workflow\", \"locale\": \"es_ES\", \"content\": {} }" }
+          },
+          "docs": "Creates a translation for a resource and locale."
+        }
+      ]
+    }
+  ]
+}

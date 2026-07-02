@@ -1,0 +1,135 @@
+aid: novu-co
+name: Novu
+review:
+  question: Does Novu expose a documented public WebSocket API?
+  answer: true
+  date: '2026-07-02'
+  reviewer: API Evangelist
+  asyncapiSpecCreated: true
+  asyncapiScopeNote: |
+    Novu's in-app Inbox notification center is kept in sync in real time over a
+    documented public WebSocket. Novu Cloud exposes this at wss://ws.novu.co and
+    it speaks the Socket.IO protocol (Engine.IO transport `websocket`). An
+    AsyncAPI 2.6 document was authored at asyncapi/novu-co-asyncapi.yml modeling
+    the three subscriber-facing events emitted over that socket -
+    notification_received, unseen_count_changed, and unread_count_changed - with
+    the WebSocket/Socket.IO transport and subscriber-identity authentication
+    (subscriberId + applicationIdentifier + HMAC subscriberHash) documented
+    throughout (servers, security scheme, info.x-transport-notes) so the socket
+    is represented accurately.
+findings:
+  summary: |
+    Novu DOES publish a documented public WebSocket API. Novu is open-source
+    notification infrastructure (github.com/novuhq/novu, MIT) that sends
+    multi-channel notifications - email, SMS, push, chat, and an in-app Inbox -
+    from a single workflow trigger. Its primary programmatic surface is a REST
+    API at https://api.novu.co/v1 (US) and https://eu.api.novu.co/v1 (EU),
+    authenticated with a secret API key (Authorization: ApiKey <key>). In
+    ADDITION to REST, Novu's embeddable in-app <Inbox> notification center is
+    driven by a real-time WebSocket connection: Novu Cloud runs a Socket.IO
+    WebSocket service at wss://ws.novu.co (self-hosted deployments run the same
+    novu/ws service, e.g. ws://localhost:3002). The @novu/js SDK, the React
+    <Inbox> component, and the headless useNotifications / useCounts hooks open
+    and manage this socket automatically, but the connection and its events are
+    documented and usable directly. The server emits notification_received (a
+    new in-app notification arrived), unseen_count_changed (badge/bell count of
+    unseen items changed), and unread_count_changed (count of unread items
+    changed) to the subscriber's own socket room. The socket is authenticated
+    with the subscriber identity: subscriberId, the public applicationIdentifier,
+    and, for production, an HMAC subscriberHash derived from the subscriber ID
+    and the environment secret key. This is a genuine, bidirectional, real-time
+    WebSocket transport - not SSE or long-polling of the REST API.
+  openSource: |
+    Novu's core notification infrastructure is open source (MIT) and
+    self-hostable via Docker (github.com/novuhq/novu). The WebSocket service is
+    part of the platform (the novu/ws application). Novu Cloud is the managed
+    offering with US (api.novu.co / ws.novu.co) and EU (eu.api.novu.co) regions.
+  transports:
+    - protocol: REST
+      scheme: https
+      baseURL: https://api.novu.co/v1
+      documented: true
+      note: >-
+        Core API - events/trigger, subscribers, topics, inbox feed, messages,
+        notifications, workflows, integrations, layouts, preferences,
+        environments, translations. EU region at https://eu.api.novu.co/v1.
+        Auth via header Authorization ApiKey key.
+    - protocol: WebSocket
+      scheme: wss
+      baseURL: wss://ws.novu.co
+      documented: true
+      note: >-
+        Socket.IO (Engine.IO transport=websocket) real-time channel powering the
+        in-app Inbox. Emits notification_received, unseen_count_changed, and
+        unread_count_changed. Authenticated by subscriberId +
+        applicationIdentifier + HMAC subscriberHash. Self-hosted equivalent runs
+        the novu/ws service (e.g. ws://localhost:3002).
+  websocketEvents:
+    - notification_received
+    - unseen_count_changed
+    - unread_count_changed
+  endpointsConfirmedRest:
+    - POST   https://api.novu.co/v1/events/trigger
+    - POST   https://api.novu.co/v1/events/trigger/bulk
+    - POST   https://api.novu.co/v1/events/broadcast
+    - DELETE https://api.novu.co/v1/events/trigger/{transactionId}
+    - POST   https://api.novu.co/v1/subscribers
+    - POST   https://api.novu.co/v1/subscribers/bulk
+    - GET    https://api.novu.co/v1/subscribers/{subscriberId}
+    - PUT    https://api.novu.co/v1/subscribers/{subscriberId}
+    - DELETE https://api.novu.co/v1/subscribers/{subscriberId}
+    - GET    https://api.novu.co/v1/subscribers/{subscriberId}/preferences
+    - GET    https://api.novu.co/v1/subscribers/{subscriberId}/notifications/unseen
+    - POST   https://api.novu.co/v1/topics
+    - GET    https://api.novu.co/v1/topics
+    - GET    https://api.novu.co/v1/topics/{topicKey}
+    - DELETE https://api.novu.co/v1/topics/{topicKey}
+    - POST   https://api.novu.co/v1/topics/{topicKey}/subscribers
+    - GET    https://api.novu.co/v1/messages
+    - DELETE https://api.novu.co/v1/messages/{messageId}
+    - GET    https://api.novu.co/v1/notifications
+    - GET    https://api.novu.co/v1/notifications/{notificationId}
+    - POST   https://api.novu.co/v1/workflows
+    - GET    https://api.novu.co/v1/workflows
+    - GET    https://api.novu.co/v1/workflows/{workflowId}
+    - POST   https://api.novu.co/v1/integrations
+    - GET    https://api.novu.co/v1/integrations
+    - GET    https://api.novu.co/v1/integrations/active
+    - POST   https://api.novu.co/v1/layouts
+    - GET    https://api.novu.co/v1/layouts
+    - GET    https://api.novu.co/v1/environments
+    - POST   https://api.novu.co/v1/environments/publish
+    - POST   https://api.novu.co/v1/translations
+  endpointsConfirmedWebSocket:
+    - 'wss://ws.novu.co (Socket.IO handshake: /socket.io/?EIO=4&transport=websocket)'
+sources:
+  - url: https://docs.novu.co/api-reference/overview
+    type: Documentation
+    note: REST base URLs (api.novu.co/v1, eu.api.novu.co/v1); secret API key auth; resource groups.
+  - url: https://docs.novu.co/api-reference/rate-limiting
+    type: Documentation
+    note: Token-bucket per-second limits by category (Events/Configuration/Global) and tier; rate-limit headers.
+  - url: https://docs.novu.co/platform/inbox/overview
+    type: Documentation
+    note: In-app Inbox synchronized across devices in real time via WebSocket.
+  - url: https://novu.co/inbox/
+    type: Documentation
+    note: Full-stack Inbox with real-time delivery over WebSocket.
+  - url: https://novu.co/blog/dev-community-notification-center/
+    type: Blog
+    note: Implementation using React, Novu, and WebSockets; unseen_count_changed event via socket.io.
+  - url: https://github.com/novuhq/novu
+    type: SourceCode
+    note: Open-source (MIT) notification infrastructure including the novu/ws WebSocket service.
+actions:
+  asyncapiPath: asyncapi/novu-co-asyncapi.yml
+  apisYmlUpdated: true
+  reason: |
+    Novu exposes a documented public WebSocket surface (Socket.IO at
+    wss://ws.novu.co) that powers the real-time in-app Inbox. An AsyncAPI 2.6
+    document was authored modeling its three subscriber-facing events
+    (notification_received, unseen_count_changed, unread_count_changed) with
+    WebSocket/Socket.IO transport and subscriber-identity authentication
+    documented explicitly. apis.yml lists a dedicated "Novu Inbox Realtime API"
+    entry (baseURL wss://ws.novu.co) plus an AsyncAPI property on the Inbox API,
+    alongside the REST APIs.

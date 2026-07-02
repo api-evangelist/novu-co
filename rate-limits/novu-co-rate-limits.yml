@@ -1,0 +1,121 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Novu
+providerId: novu-co
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- Notifications
+- Multi-Channel
+- Rate Limiting
+- Quotas
+description: >-
+  Novu Cloud enforces documented per-second API rate limits using a token-bucket
+  model that varies by plan tier and by request category. Requests are grouped
+  into three categories - Events (Trigger), Configuration, and a Global default
+  bucket - each with its own per-second budget. Standard requests cost 1 token;
+  bulk requests (for example POST /v1/events/trigger/bulk) cost 100 tokens, so a
+  bulk call consumes a much larger share of the budget. Limits scale up with the
+  plan: Free, Pro, Team, and Enterprise. Self-hosted Novu deployments configure
+  their own limits.
+notes: >-
+  Rate limits below are documented requests-per-second (RPS) values from Novu's
+  API rate-limiting docs. Bulk endpoints cost 100 tokens each - e.g. on Team
+  (600 events RPS) you can issue ~6 bulk trigger calls per second. Verify current
+  numbers on the Novu rate-limiting page during reconciliation.
+sources:
+- https://docs.novu.co/api-reference/rate-limiting
+- https://novu.co/pricing/
+responseCodes:
+  throttled: 429
+headers:
+- name: RateLimit-Limit
+  description: Total tokens available in the current window.
+- name: RateLimit-Remaining
+  description: Tokens remaining in the current window.
+- name: RateLimit-Reset
+  description: Seconds until the current window resets.
+- name: RateLimit-Policy
+  description: The detailed rate-limit policy in effect.
+- name: Retry-After
+  description: Seconds to wait before retrying after a 429.
+limits:
+- name: Events (Trigger) - Free
+  scope: account
+  metric: requests
+  limit: 60 per second
+  notes: Trigger/broadcast/cancel event endpoints on the Free tier.
+- name: Events (Trigger) - Pro
+  scope: account
+  metric: requests
+  limit: 240 per second
+  notes: Trigger category on the Pro tier.
+- name: Events (Trigger) - Team
+  scope: account
+  metric: requests
+  limit: 600 per second
+  notes: Trigger category on the Team tier.
+- name: Events (Trigger) - Enterprise
+  scope: account
+  metric: requests
+  limit: 6000 per second
+  notes: Trigger category on the Enterprise tier.
+- name: Configuration - Free
+  scope: account
+  metric: requests
+  limit: 20 per second
+  notes: Configuration endpoints (workflows, integrations, layouts, environments, etc.) on Free.
+- name: Configuration - Pro
+  scope: account
+  metric: requests
+  limit: 80 per second
+  notes: Configuration category on the Pro tier.
+- name: Configuration - Team
+  scope: account
+  metric: requests
+  limit: 200 per second
+  notes: Configuration category on the Team tier.
+- name: Configuration - Enterprise
+  scope: account
+  metric: requests
+  limit: 2000 per second
+  notes: Configuration category on the Enterprise tier.
+- name: Global - Free
+  scope: account
+  metric: requests
+  limit: 30 per second
+  notes: Default/global bucket for all other endpoints on Free.
+- name: Global - Pro
+  scope: account
+  metric: requests
+  limit: 120 per second
+  notes: Global category on the Pro tier.
+- name: Global - Team
+  scope: account
+  metric: requests
+  limit: 300 per second
+  notes: Global category on the Team tier.
+- name: Global - Enterprise
+  scope: account
+  metric: requests
+  limit: 3000 per second
+  notes: Global category on the Enterprise tier.
+- name: Bulk Request Token Cost
+  scope: request
+  metric: tokens
+  limit: 100 tokens per bulk request
+  notes: Bulk endpoints (e.g. /v1/events/trigger/bulk) cost 100 tokens; standard requests cost 1 token.
+policies:
+- name: Token Bucket
+  description: Each request category has a per-second token budget; standard requests cost 1 token and bulk requests cost 100 tokens.
+- name: Tiered Limits
+  description: Per-second budgets scale with the plan tier (Free < Pro < Team < Enterprise).
+- name: Backoff Strategy
+  description: On 429 Too Many Requests, honor the Retry-After header and implement exponential backoff with jitter to avoid thundering-herd retries.
+- name: Rate Limit Headers
+  description: Clients should read RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset, and RateLimit-Policy to stay under budget proactively.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

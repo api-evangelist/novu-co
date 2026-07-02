@@ -1,0 +1,206 @@
+asyncapi: '2.6.0'
+id: 'urn:co:novu:inbox:websocket'
+info:
+  title: Novu Inbox Realtime (WebSocket / Socket.IO)
+  version: '1.0.0'
+  description: |
+    AsyncAPI 2.6 description of Novu's **Inbox real-time WebSocket** surface -
+    the connection that powers the live bell, counts, and feed of Novu's
+    embeddable in-app `<Inbox>` notification center.
+
+    Unlike Novu's REST API (modeled in `openapi/novu-co-openapi.yml`), the Inbox
+    keeps browser and mobile clients in sync **in real time over a WebSocket**.
+    Novu Cloud exposes this WebSocket service at `wss://ws.novu.co` and it speaks
+    the **Socket.IO** protocol (Engine.IO transport `websocket`). The `@novu/js`
+    SDK, the React `<Inbox>` component, and the headless hooks (`useNotifications`,
+    `useCounts`) all open and manage this socket automatically - handling
+    reconnection, optimistic UI, and pagination - but the connection and its
+    events are documented and can be used directly.
+
+    A community-referenced raw connection string is:
+    `wss://ws.novu.co/socket.io/?EIO=4&transport=websocket`
+
+    The socket is authenticated using the same subscriber identity as the Inbox:
+    the `subscriberId`, the `applicationIdentifier` (public application ID), and,
+    for production security, an HMAC `subscriberHash` computed server-side from
+    the subscriber ID and the environment's secret key. Once connected, the
+    server emits notification events to the subscriber's own socket room.
+
+    Self-hosted Novu deployments run the same service (the `novu/ws` /
+    `Novu-WS` websocket application), typically reachable at
+    `ws://localhost:3002` in local development.
+  contact:
+    name: API Evangelist
+    email: kin@apievangelist.com
+    url: https://apievangelist.com
+  license:
+    name: MIT
+    url: https://github.com/novuhq/novu/blob/next/LICENSE
+  x-transport-notes:
+    transport: WebSocket (Socket.IO / Engine.IO)
+    protocol: wss
+    direction: bidirectional (client subscribes to events, server pushes)
+    cloudHost: wss://ws.novu.co
+    rawConnectExample: 'wss://ws.novu.co/socket.io/?EIO=4&transport=websocket'
+    selfHostedDefault: ws://localhost:3002
+    events:
+      - notification_received
+      - unseen_count_changed
+      - unread_count_changed
+    auth: subscriberId + applicationIdentifier + HMAC subscriberHash
+    source: https://docs.novu.co/platform/inbox/overview
+defaultContentType: application/json
+servers:
+  novu-cloud:
+    url: ws.novu.co
+    protocol: wss
+    description: |
+      Novu Cloud Inbox WebSocket (Socket.IO) endpoint. Clients connect with the
+      Engine.IO `websocket` transport and authenticate with the subscriber's
+      identity (subscriberId + applicationIdentifier + HMAC subscriberHash).
+    security:
+      - subscriberAuth: []
+  novu-self-hosted:
+    url: localhost:3002
+    protocol: ws
+    description: |
+      Default WebSocket service address for a self-hosted Novu deployment
+      (the novu/ws application). Host and port depend on your deployment.
+    security:
+      - subscriberAuth: []
+channels:
+  notification_received:
+    description: |
+      Emitted to a subscriber's socket when a new in-app notification is
+      delivered to them (as a result of a triggered workflow with an in-app
+      step). Clients use this to prepend the item to the Inbox feed in real
+      time. The `@novu/js` SDK surfaces this via the
+      `notifications.notification_received` listener.
+    subscribe:
+      operationId: onNotificationReceived
+      summary: Receive a newly delivered in-app notification in real time.
+      message:
+        $ref: '#/components/messages/NotificationReceived'
+  unseen_count_changed:
+    description: |
+      Emitted when the subscriber's count of **unseen** in-app notifications
+      changes (a new notification arrives, or items are marked seen). Clients
+      update the Inbox bell badge from this event without polling
+      `GET /subscribers/{subscriberId}/notifications/unseen`.
+    subscribe:
+      operationId: onUnseenCountChanged
+      summary: Receive the updated unseen notification count.
+      message:
+        $ref: '#/components/messages/CountChanged'
+  unread_count_changed:
+    description: |
+      Emitted when the subscriber's count of **unread** in-app notifications
+      changes (a notification arrives, or items are marked read/unread). Backs
+      the `useCounts` hook and the `notifications.unread_count_changed`
+      listener.
+    subscribe:
+      operationId: onUnreadCountChanged
+      summary: Receive the updated unread notification count.
+      message:
+        $ref: '#/components/messages/CountChanged'
+components:
+  securitySchemes:
+    subscriberAuth:
+      type: userPassword
+      description: |
+        Socket.IO handshake authentication for the Inbox WebSocket. The client
+        presents the subscriber identity - `subscriberId` and public
+        `applicationIdentifier` - plus, in production, an HMAC `subscriberHash`
+        derived from the subscriber ID and the environment secret key
+        (`crypto.createHmac('sha256', secretKey).update(subscriberId)`). The
+        server joins the socket to that subscriber's private room and only emits
+        that subscriber's events to it.
+  messages:
+    NotificationReceived:
+      name: notification_received
+      title: New in-app notification received
+      summary: A newly delivered in-app notification pushed to the subscriber's socket.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/NotificationReceivedPayload'
+      examples:
+        - name: received
+          summary: A new notification arrives
+          payload:
+            message:
+              _id: 64f1a2b3c4d5e6f70819aa01
+              _feedId: null
+              content: 'Alex commented on your post'
+              read: false
+              seen: false
+              archived: false
+              createdAt: '2026-07-02T15:04:05.000Z'
+              payload:
+                postId: post_123
+              cta:
+                type: redirect
+                data:
+                  url: /posts/post_123
+    CountChanged:
+      name: count_changed
+      title: Notification count changed
+      summary: Updated unseen or unread notification count for the subscriber.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/CountChangedPayload'
+      examples:
+        - name: unseen
+          summary: Unseen count updated
+          payload:
+            unseenCount: 3
+        - name: unread
+          summary: Unread count updated
+          payload:
+            unreadCount: 5
+  schemas:
+    NotificationReceivedPayload:
+      type: object
+      description: Payload of a notification_received event.
+      properties:
+        message:
+          $ref: '#/components/schemas/InAppMessage'
+    InAppMessage:
+      type: object
+      description: The in-app (Inbox) notification/message object.
+      properties:
+        _id:
+          type: string
+        _feedId:
+          type: string
+          nullable: true
+        content:
+          type: string
+        read:
+          type: boolean
+        seen:
+          type: boolean
+        archived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+          description: The workflow payload variables attached to this notification.
+        cta:
+          type: object
+          description: Call-to-action (for example a redirect URL or action buttons).
+          additionalProperties: true
+    CountChangedPayload:
+      type: object
+      description: |
+        Payload of an unseen_count_changed or unread_count_changed event. Novu
+        emits the relevant count field for the event.
+      properties:
+        unseenCount:
+          type: integer
+          description: Present on unseen_count_changed events.
+        unreadCount:
+          type: integer
+          description: Present on unread_count_changed events.

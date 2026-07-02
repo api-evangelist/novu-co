@@ -1,0 +1,103 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: Novu
+providerId: novu-co
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- Notifications
+- Multi-Channel
+- Open Source
+- FinOps
+- Cost Management
+- FOCUS
+description: >-
+  FinOps view of Novu spend. Novu's core notification infrastructure is open
+  source (MIT) and free to self-host - in that model the cost is your own
+  compute, storage, and network for running the Novu services (API, worker,
+  WebSocket) plus the fees of the downstream channel providers (SendGrid,
+  Twilio, FCM, APNs, Slack, etc.), with no Novu invoice. Novu Cloud is the
+  managed offering, billed on workflow-run (event) volume: a base subscription
+  that includes a monthly run allowance, plus overage at $1.20 per 1,000
+  additional runs on Pro and Team. Subscribers (recipients / MAU) are unlimited
+  and not metered. Enterprise agreements cover very high volume (10M+ runs/mo)
+  and advanced controls.
+notes: >-
+  The metered unit is the workflow run (one trigger event that can fan out
+  across channels), not MAU - subscribers are unlimited on all Cloud tiers. Two
+  cost centers to watch: Novu Cloud run volume/overage, and the downstream
+  provider costs (email/SMS/push) which Novu orchestrates but does not bill.
+  Verify current rates on the Novu pricing page.
+sources:
+- https://novu.co/pricing/
+- https://docs.novu.co/api-reference/rate-limiting
+- https://github.com/novuhq/novu
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: Novu
+serviceCategory: Notifications and Messaging
+billingModel:
+  pricingCategory: Usage-Based
+  billingFrequency: Monthly
+  billingCurrency: USD
+  chargeCategories:
+  - Purchase
+  - Usage
+  - Adjustment
+focusColumns:
+  ServiceName: Novu Cloud
+  ServiceCategory: Notifications and Messaging
+  ProviderName: Novu
+  PublisherName: Novu
+  InvoiceIssuerName: Novu
+  BillingCurrency: USD
+  ChargeCategory: Usage
+  PricingCategory: Usage-Based
+meters:
+- name: workflow_runs
+  description: Workflow trigger events executed on Novu Cloud; each run can fan out across channels. Billed via base allowance plus overage per 1,000.
+  unit: events
+  aggregation: sum
+  dimensions:
+  - account
+  - environment
+  - workflow
+- name: overage_runs
+  description: Workflow runs above the plan's monthly allowance, billed at $1.20 per 1,000 on Pro and Team.
+  unit: events
+  aggregation: sum
+  dimensions:
+  - account
+  - environment
+- name: downstream_provider_cost
+  description: Fees charged by the underlying channel providers (email/SMS/push/chat) that Novu orchestrates. Billed by those providers, not Novu.
+  unit: messages
+  aggregation: sum
+  dimensions:
+  - channel
+  - providerId
+- name: self_hosted_compute
+  description: Infrastructure cost of running self-hosted Novu services (API, worker, WebSocket) - no Novu invoice.
+  unit: hours
+  aggregation: sum
+  dimensions:
+  - deployment
+principles:
+- name: Visibility
+  description: Track workflow-run volume per environment and workflow against the plan allowance; separately monitor downstream provider (email/SMS/push) costs which dominate at scale.
+- name: Allocation
+  description: Use environments, workflow names, and topics to map run volume to teams, features, and cost centers.
+- name: Optimization
+  description: Consolidate notifications into single multi-channel workflows, use digest/aggregation steps to reduce message volume, gate low-value channels via subscriber preferences, and self-host to trade Cloud fees for owned infrastructure at high volume.
+- name: Accountability
+  description: Assign owners per workflow/environment; review monthly runs against the tier allowance and overage, and reconcile downstream provider invoices.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

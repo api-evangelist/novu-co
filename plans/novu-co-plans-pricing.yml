@@ -1,0 +1,195 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Novu
+providerId: novu-co
+created: '2026-07-02'
+modified: '2026-07-02'
+reconciled: false
+tags:
+- Notifications
+- Multi-Channel
+- Open Source
+- Plans
+description: >-
+  Novu has two consumption models. The core notification infrastructure is open
+  source (MIT) and free to self-host with no vendor invoice. Novu Cloud is the
+  managed offering, metered primarily on workflow runs (events) - one event is
+  one workflow trigger that can fan a notification out across in-app, email, SMS,
+  push, and chat from a single API call. Subscribers (recipients / MAU) are
+  unlimited on every Cloud tier; billing is driven by workflow-run volume plus
+  overage. Tiers are Free ($0, 10,000 runs/mo), Pro (from $30/mo, 30,000+
+  runs/mo), Team (from $250/mo, 250,000+ runs/mo), and Enterprise (custom, 10M+
+  runs/mo). Overage on Pro and Team is $1.20 per 1,000 additional runs.
+notes: >-
+  Subscribers are unlimited on all Cloud tiers - Novu does not meter MAU; the
+  metered unit is the workflow run (event). Higher tiers unlock higher API rate
+  limits, longer activity retention, more environments, more team members, and
+  enterprise controls (RBAC, SSO, Directory Sync, HIPAA BAA, data residency).
+  Verify current pricing on the Novu pricing page during reconciliation.
+sources:
+- https://novu.co/pricing/
+- https://docs.novu.co/api-reference/rate-limiting
+- https://github.com/novuhq/novu
+plans:
+- id: novu-open-source
+  name: Open Source (Self-Hosted)
+  type: free
+  description: >-
+    The full Novu notification infrastructure, MIT-licensed and self-hostable
+    via Docker. Includes the workflow engine, all channels, the embeddable Inbox
+    and its WebSocket service, 55+ provider integrations, and the REST API.
+    Volume is bounded only by your own infrastructure and downstream provider
+    limits, with no Novu invoice.
+  entries:
+  - label: Self-Hosted Workflow Runs
+    name: self_hosted_runs
+    type: usage
+    metric: events
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: free (self-hosted; you provide infrastructure)
+    userMultiplied: false
+  elements:
+  - name: All Channels (In-App, Email, SMS, Push, Chat)
+  - name: Embeddable Inbox + WebSocket
+  - name: 55+ Provider Integrations
+  - name: REST API
+  - name: Unlimited Subscribers
+- id: novu-cloud-free
+  name: Novu Cloud - Free
+  type: free
+  description: >-
+    Free managed tier for getting started, no credit card required. Includes
+    10,000 workflow runs per month, unlimited subscribers, all channels, up to
+    20 workflows, 2 environments, up to 3 team members, and 24-hour activity
+    retention.
+  entries:
+  - label: Included Workflow Runs
+    name: free_runs
+    type: usage
+    metric: events
+    limit: 10000
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: '0.00'
+    userMultiplied: false
+  - label: Subscribers
+    name: free_subscribers
+    type: usage
+    metric: subscribers
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: unlimited
+    userMultiplied: false
+  elements:
+  - name: All Channels
+  - name: Up to 20 Workflows
+  - name: 2 Environments
+  - name: Up to 3 Team Members
+  - name: 24-Hour Activity Retention
+- id: novu-cloud-pro
+  name: Novu Cloud - Pro
+  type: paid
+  description: >-
+    Managed tier from $30/month with 30,000+ workflow runs per month, additional
+    runs at $1.20 per 1,000. Everything in Free plus 7-day activity retention,
+    removable Novu branding, the advanced email editor (blocks and layouts), and
+    higher API rate limits.
+  entries:
+  - label: Base Subscription
+    name: pro_base
+    type: flat
+    metric: subscription
+    limit: 30000
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: '30.00'
+    userMultiplied: false
+  - label: Additional Workflow Runs
+    name: pro_overage
+    type: usage
+    metric: events
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1000
+    price: '1.20'
+    userMultiplied: false
+  elements:
+  - name: 30,000+ Workflow Runs / Month
+  - name: 7-Day Activity Retention
+  - name: Remove Novu Branding
+  - name: Advanced Email Editor
+  - name: Higher API Rate Limits
+- id: novu-cloud-team
+  name: Novu Cloud - Team
+  type: paid
+  description: >-
+    Managed tier from $250/month with 250,000+ workflow runs per month,
+    additional runs at $1.20 per 1,000. Everything in Pro plus up to 10
+    environments, 90-day retention, unlimited team members, Role-Based Access
+    Control, and expanded API rate limits (up to 600 RPS on events).
+  entries:
+  - label: Base Subscription
+    name: team_base
+    type: flat
+    metric: subscription
+    limit: 250000
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: '250.00'
+    userMultiplied: false
+  - label: Additional Workflow Runs
+    name: team_overage
+    type: usage
+    metric: events
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1000
+    price: '1.20'
+    userMultiplied: false
+  elements:
+  - name: 250,000+ Workflow Runs / Month
+  - name: Up to 10 Environments
+  - name: 90-Day Retention
+  - name: Unlimited Team Members
+  - name: Role-Based Access Control
+  - name: Expanded Rate Limits (600 RPS)
+- id: novu-enterprise
+  name: Enterprise / Custom
+  type: enterprise
+  description: >-
+    Custom plan for high volume (10M+ workflow runs/month with custom volume
+    tiers), unlimited environments, custom retention, HIPAA BAA, dedicated SSO,
+    Directory Sync, private support channel, advanced data residency, and
+    self-hosted deployment support. Contact Novu.
+  entries:
+  - label: Enterprise Agreement
+    name: enterprise
+    type: flat
+    metric: contract
+    limit: -1
+    timeFrame: year
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: 10M+ Workflow Runs (Custom Tiers)
+  - name: Unlimited Environments
+  - name: HIPAA BAA
+  - name: Dedicated SSO and Directory Sync
+  - name: Data Residency Options
+  - name: Self-Hosted Deployment Support
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

@@ -1,0 +1,326 @@
+aid: novu-co
+url: https://raw.githubusercontent.com/api-evangelist/novu-co/refs/heads/main/apis.yml
+name: Novu
+kind: company
+description: Novu is open-source notification infrastructure that sends multi-channel
+  messages - email, SMS, push, chat, and an in-app Inbox - from a single workflow
+  trigger. A single event API call fans a notification out across channels defined
+  in a workflow, with subscriber management, topics, layouts, digest/aggregation,
+  55+ provider integrations, and a real-time embeddable Inbox notification center
+  powered by a WebSocket connection. Novu is self-hostable (MIT) and also available
+  as Novu Cloud, with US (api.novu.co) and EU (eu.api.novu.co) regions.
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+tags:
+- Notifications
+- Multi-Channel
+- Email
+- SMS
+- Push
+- Chat
+- In-App Inbox
+- Open Source
+- WebSocket
+created: '2026-07-02'
+modified: '2026-07-02'
+specificationVersion: '0.19'
+apis:
+- aid: novu-co:novu-co-events-api
+  name: Novu Events API
+  tags:
+  - Events
+  - Trigger
+  - Workflows
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/events/trigger-event
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/overview
+    type: Documentation
+  - url: https://docs.novu.co/api-reference/events/trigger-event
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Trigger notification workflows for one or many subscribers. A single
+    event fans out across the channels defined in a workflow - in-app, email, SMS,
+    push, and chat - with bulk trigger, broadcast to all subscribers, and cancel by
+    transactionId.
+- aid: novu-co:novu-co-subscribers-api
+  name: Novu Subscribers API
+  tags:
+  - Subscribers
+  - Recipients
+  - CRM
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/subscribers/create-a-subscriber
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/subscribers/create-a-subscriber
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Create, retrieve, update, delete, and bulk-manage subscribers - the
+    recipients of notifications - along with their channel credentials (device tokens,
+    chat webhooks), online status, and subscriptions.
+- aid: novu-co:novu-co-topics-api
+  name: Novu Topics API
+  tags:
+  - Topics
+  - Audiences
+  - Broadcast
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/topics/topic-creation
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/topics/topic-creation
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Group subscribers into topics addressed by a topic key, then trigger
+    a single event to notify the whole audience. Manage topic subscriptions - add,
+    list, check, and remove subscribers.
+- aid: novu-co:novu-co-inbox-api
+  name: Novu Inbox API
+  tags:
+  - Inbox
+  - In-App
+  - Notification Center
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/platform/inbox/overview
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/platform/inbox/overview
+    type: Documentation
+  - url: https://docs.novu.co/api-reference/subscribers/get-in-app-notification-feed-for-a-particular-subscriber
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: asyncapi/novu-co-asyncapi.yml
+    type: AsyncAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: The in-app notification center feed for a subscriber - list feed items,
+    read unseen/unread counts, and mark, read, unread, seen, archive, snooze, or delete
+    notifications. Backs the embeddable Inbox component whose real-time updates arrive
+    over the WebSocket described in the companion AsyncAPI document.
+- aid: novu-co:novu-co-messages-api
+  name: Novu Messages API
+  tags:
+  - Messages
+  - Delivery
+  - History
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/messages/list-all-messages
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/messages/list-all-messages
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: List the individual channel messages generated by workflow executions,
+    filter by channel/subscriber/transactionId, and delete messages individually or
+    by transactionId.
+- aid: novu-co:novu-co-notifications-api
+  name: Novu Notifications API
+  tags:
+  - Notifications
+  - Activity Feed
+  - Analytics
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/notifications/list-all-events
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/notifications/list-all-events
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Query the activity feed of triggered workflow executions (events) -
+    list with filters and retrieve a single notification/event record with its per-step
+    execution outcome for observability and debugging.
+- aid: novu-co:novu-co-workflows-api
+  name: Novu Workflows API
+  tags:
+  - Workflows
+  - Notification Templates
+  - Orchestration
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/workflows/create-a-workflow
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/workflows/create-a-workflow
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Create, list, retrieve, update, patch, delete, and sync notification
+    workflows (formerly notification templates) - the multi-channel step definitions
+    (in-app, email, SMS, push, chat, digest, delay) that a trigger event executes.
+    Includes per-step retrieval and preview.
+- aid: novu-co:novu-co-integrations-api
+  name: Novu Integrations API
+  tags:
+  - Integrations
+  - Providers
+  - Channels
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/integrations/list-all-integrations
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/integrations/list-all-integrations
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Configure the delivery providers behind each channel - create, list
+    (all and active), retrieve, update, and delete integrations across 55+ providers
+    (SendGrid, Twilio, FCM, APNs, Slack, and more), set a primary integration, and
+    auto-configure webhooks.
+- aid: novu-co:novu-co-layouts-api
+  name: Novu Layouts API
+  tags:
+  - Layouts
+  - Email
+  - Templates
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/layouts/layout-creation
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/layouts/layout-creation
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Manage reusable email layouts that wrap notification content - create,
+    list, retrieve, update, delete, duplicate, preview, and inspect usage of the shared
+    header/footer wrappers applied to email steps.
+- aid: novu-co:novu-co-subscriber-preferences-api
+  name: Novu Subscriber Preferences API
+  tags:
+  - Preferences
+  - Opt-Out
+  - Channels
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/subscribers/get-subscriber-preferences
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/subscribers/get-subscriber-preferences
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Read and update per-subscriber notification preferences - which workflows
+    and channels a subscriber is opted into - including bulk preference updates that
+    let end users control what they receive.
+- aid: novu-co:novu-co-environments-api
+  name: Novu Environments API
+  tags:
+  - Environments
+  - Promotion
+  - Configuration
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/environments/list-all-environments
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/environments/list-all-environments
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Manage Novu environments (Development, Production, and more) and promote
+    resources between them - create, list, update, delete environments, list tags,
+    compare, and publish changes to a target environment.
+- aid: novu-co:novu-co-translations-api
+  name: Novu Translations API
+  tags:
+  - Translations
+  - Localization
+  - i18n
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/api-reference/overview
+  baseURL: https://api.novu.co/v1
+  properties:
+  - url: https://docs.novu.co/api-reference/overview
+    type: APIReference
+  - url: openapi/novu-co-openapi.yml
+    type: OpenAPI
+  - url: collections/novu-co.postman_collection.json
+    type: PostmanCollection
+  - url: collections/novu-co.opencollection.json
+    type: OpenCollection
+  description: Localize notification content across locales - create, retrieve, and
+    delete translations per resource and locale, manage translation groups, and import
+    or upload master translation JSON and files.
+- aid: novu-co:novu-co-inbox-realtime-api
+  name: Novu Inbox Realtime API
+  tags:
+  - WebSocket
+  - Realtime
+  - Inbox
+  - Socket.IO
+  image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+  humanURL: https://docs.novu.co/platform/inbox/overview
+  baseURL: https://ws.novu.co
+  properties:
+  - url: https://docs.novu.co/platform/inbox/overview
+    type: Documentation
+  - url: asyncapi/novu-co-asyncapi.yml
+    type: AsyncAPI
+  description: Real-time WebSocket (Socket.IO) surface that pushes live Inbox updates
+    to browser and mobile clients - notification_received, unseen_count_changed, and
+    unread_count_changed events - authenticated by subscriberId, applicationIdentifier,
+    and an HMAC subscriber hash. Powers the embeddable Inbox component's live bell,
+    counts, and feed.
+common:
+- type: GitHubOrganization
+  url: https://github.com/novuhq
+- type: LinkedIn
+  url: https://www.linkedin.com/company/novuco
+- type: Website
+  url: https://novu.co/
+- type: Documentation
+  url: https://docs.novu.co
+- type: Plans
+  url: plans/novu-co-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/novu-co-rate-limits.yml
+- type: FinOps
+  url: finops/novu-co-finops.yml
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com
