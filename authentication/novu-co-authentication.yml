@@ -1,0 +1,17 @@
+generated: '2026-07-11'
+method: derived
+source: openapi/novu-co-openapi.yml
+summary:
+  types:
+  - apiKey
+  api_key_in:
+  - header
+schemes:
+- name: apiKeyAuth
+  type: apiKey
+  in: header
+  parameter: Authorization
+  description: 'Novu secret API key from the Dashboard API Keys page, sent as `Authorization:
+    ApiKey <NOVU_SECRET_KEY>`.'
+  sources:
+  - openapi/novu-co-openapi.yml
