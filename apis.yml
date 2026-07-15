@@ -307,6 +307,8 @@ apis:
     and an HMAC subscriber hash. Powers the embeddable Inbox component's live bell,
     counts, and feed.
 common:
+- type: AgenticAccess
+  url: agentic-access/novu-co-agentic-access.yml
 - type: DomainSecurity
   url: security/novu-co-domain-security.yml
 - type: Authentication
