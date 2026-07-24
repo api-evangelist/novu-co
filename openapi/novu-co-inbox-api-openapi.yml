@@ -1,0 +1,187 @@
+openapi: 3.0.3
+info:
+  title: Novu Environments Inbox API
+  description: 'The Novu REST API drives open-source notification infrastructure that sends multi-channel messages - email, SMS, push, chat, and an in-app Inbox - from a single workflow trigger. A trigger event fans a notification out across the channels defined in a workflow. This document models the core resources - Events (Trigger), Subscribers, Topics, the in-app Inbox feed, Messages, Notifications (activity), Workflows, Integrations, Layouts, subscriber Preferences, Environments, and Translations. Novu is open source (MIT) and self-hostable, and also runs as Novu Cloud with US and EU regions. All requests authenticate with a secret API key sent as `Authorization: ApiKey <NOVU_SECRET_KEY>`. Endpoints are grounded in Novu''s published API reference; request/response bodies are modeled at a representative level rather than field-complete.'
+  version: '1.0'
+  contact:
+    name: Novu
+    url: https://novu.co
+  license:
+    name: MIT
+    url: https://github.com/novuhq/novu/blob/next/LICENSE
+servers:
+- url: https://api.novu.co/v1
+  description: Novu Cloud - US (default)
+- url: https://eu.api.novu.co/v1
+  description: Novu Cloud - EU
+security:
+- apiKeyAuth: []
+tags:
+- name: Inbox
+  description: The in-app notification feed for a subscriber.
+paths:
+  /subscribers/{subscriberId}/notifications/feed:
+    parameters:
+    - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getInAppNotificationFeed
+      tags:
+      - Inbox
+      summary: Retrieve the in-app notification feed
+      description: Returns the paginated in-app (Inbox) notification feed for a subscriber. This is the same feed the embeddable Inbox component renders and receives live updates for over the WebSocket described in the AsyncAPI document.
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+      - name: read
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: A page of in-app notifications.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InAppFeedResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/notifications/unseen:
+    parameters:
+    - $ref: '#/components/parameters/SubscriberId'
+    get:
+      operationId: getUnseenCount
+      tags:
+      - Inbox
+      summary: Retrieve unseen count
+      description: Returns the number of unseen in-app notifications for the subscriber - the value pushed live as unseen_count_changed over the WebSocket.
+      responses:
+        '200':
+          description: The unseen count.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /subscribers/{subscriberId}/messages/markAs:
+    parameters:
+    - $ref: '#/components/parameters/SubscriberId'
+    post:
+      operationId: markMessagesAs
+      tags:
+      - Inbox
+      summary: Mark in-app messages as seen/read
+      description: Marks one or more in-app messages as seen or read for the subscriber.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - messageId
+              - mark
+              properties:
+                messageId:
+                  oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+                mark:
+                  type: object
+                  properties:
+                    seen:
+                      type: boolean
+                    read:
+                      type: boolean
+      responses:
+        '200':
+          description: Updated messages.
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+    InAppFeedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/InAppNotification'
+        totalCount:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        hasMore:
+          type: boolean
+    InAppNotification:
+      type: object
+      properties:
+        _id:
+          type: string
+        _feedId:
+          type: string
+        content:
+          type: string
+        read:
+          type: boolean
+        seen:
+          type: boolean
+        archived:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true
+        cta:
+          type: object
+          additionalProperties: true
+  responses:
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    SubscriberId:
+      name: subscriberId
+      in: path
+      required: true
+      description: Your application's unique identifier for the subscriber.
+      schema:
+        type: string
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Novu secret API key from the Dashboard API Keys page, sent as `Authorization: ApiKey <NOVU_SECRET_KEY>`.'

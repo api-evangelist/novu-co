@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: Novu Environments Messages API
+  description: 'The Novu REST API drives open-source notification infrastructure that sends multi-channel messages - email, SMS, push, chat, and an in-app Inbox - from a single workflow trigger. A trigger event fans a notification out across the channels defined in a workflow. This document models the core resources - Events (Trigger), Subscribers, Topics, the in-app Inbox feed, Messages, Notifications (activity), Workflows, Integrations, Layouts, subscriber Preferences, Environments, and Translations. Novu is open source (MIT) and self-hostable, and also runs as Novu Cloud with US and EU regions. All requests authenticate with a secret API key sent as `Authorization: ApiKey <NOVU_SECRET_KEY>`. Endpoints are grounded in Novu''s published API reference; request/response bodies are modeled at a representative level rather than field-complete.'
+  version: '1.0'
+  contact:
+    name: Novu
+    url: https://novu.co
+  license:
+    name: MIT
+    url: https://github.com/novuhq/novu/blob/next/LICENSE
+servers:
+- url: https://api.novu.co/v1
+  description: Novu Cloud - US (default)
+- url: https://eu.api.novu.co/v1
+  description: Novu Cloud - EU
+security:
+- apiKeyAuth: []
+tags:
+- name: Messages
+  description: Individual channel messages produced by workflow executions.
+paths:
+  /messages:
+    get:
+      operationId: listMessages
+      tags:
+      - Messages
+      summary: List all messages
+      description: Lists individual channel messages produced by workflow executions.
+      parameters:
+      - name: channel
+        in: query
+        schema:
+          type: string
+          enum:
+          - in_app
+          - email
+          - sms
+          - chat
+          - push
+      - name: subscriberId
+        in: query
+        schema:
+          type: string
+      - name: transactionId
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: A page of messages.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /messages/{messageId}:
+    delete:
+      operationId: deleteMessage
+      tags:
+      - Messages
+      summary: Delete a message
+      parameters:
+      - name: messageId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Deletion result.
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  responses:
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+    Message:
+      type: object
+      properties:
+        _id:
+          type: string
+        channel:
+          type: string
+          enum:
+          - in_app
+          - email
+          - sms
+          - chat
+          - push
+        subscriberId:
+          type: string
+        transactionId:
+          type: string
+        status:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Novu secret API key from the Dashboard API Keys page, sent as `Authorization: ApiKey <NOVU_SECRET_KEY>`.'
